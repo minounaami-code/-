@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل IPTV الخاص بي</title>
+    <title>IPTV Player</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #121212; color: white; }
-        video { width: 100%; max-width: 800px; margin-top: 20px; background: black; }
-        input { width: 80%; padding: 10px; margin-top: 20px; }
-        button { padding: 10px 20px; cursor: pointer; }
+        body { background: #121212; color: #fff; text-align: center; font-family: sans-serif; padding: 20px; }
+        input { width: 80%; padding: 10px; margin: 10px; border-radius: 5px; }
+        button { padding: 10px 20px; background: #e50914; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        video { width: 100%; max-width: 600px; margin-top: 20px; background: #000; }
     </style>
 </head>
 <body>
-    <h1>مشغل قنوات IPTV</h1>
-    <input type="text" id="stream-url" placeholder="ضع رابط القناة هنا (ينتهي بـ m3u8)">
-    <button onclick="playVideo()">تشغيل القناة</button>
+    <h1>IPTV Player</h1>
+    <input type="text" id="stream-url" placeholder="ضع رابط القناة هنا...">
+    <br>
+    <button onclick="playVideo()">تشغيل</button>
     <br>
     <video id="video" controls></video>
 
@@ -27,7 +28,10 @@
                 var hls = new Hls();
                 hls.loadSource(url);
                 hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
+                video.play();
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.play();
             }
         }
     </script>
