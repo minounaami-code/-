@@ -23,15 +23,14 @@
         .artisan-craft { color: #666; font-size: 14px; margin-bottom: 12px; }
         .card-actions { display: flex; gap: 10px; }
         .action-btn { flex: 1; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; }
-        .whatsapp-btn { background-color: #e8f5e9; color: #2e7d32; }
-        .call-btn { background-color: #e3f2fd; color: #1565c0; }
+        .call-btn { background-color: #e3f2fd; color: #1565c0; width: 100%; }
 
         /* نموذج التسجيل */
         .form-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: none; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .submit-btn { background-color: #2e7d32; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .submit-btn { background-color: #3700b3; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .loading { text-align: center; color: #666; padding: 20px; }
     </style>
 </head>
@@ -52,22 +51,26 @@
     <!-- قسم نموذج التسجيل -->
     <div id="registerSection" class="form-section">
         <h3 style="margin-top: 0; color: #333; text-align: center;">تسجيل حرفي جديد</h3>
-        <form id="registrationForm">
+        <form id="registrationForm" action="https://formsubmit.co/ajax/minounaami@gmail.com" method="POST">
+            <!-- إعدادات إضافية لترتيب الجدول أو البريد -->
+            <input type="hidden" name="_subject" value="تسجيل حرفي جديد في منصة خدماتك">
+            <input type="hidden" name="_template" value="table">
+            
             <div class="form-group">
                 <label>الاسم الكامل:</label>
-                <input type="text" id="name" required placeholder="مثال: أيمن نعمي">
+                <input type="text" name="name" id="name" required placeholder="مثال: أيمن نعمي">
             </div>
             <div class="form-group">
                 <label>التخصص:</label>
-                <input type="text" id="craft" required placeholder="مثال: بلاكو بلاتر + صباغة">
-            </div>
-            <div class="form-group">
-                <label>رقم الهاتف:</label>
-                <input type="tel" id="phone" required placeholder="06XXXXXXXX">
+                <input type="text" name="craft" id="craft" required placeholder="مثال: بلاكو بلاتر + صباغة">
             </div>
             <div class="form-group">
                 <label>المدينة / الولاية:</label>
-                <input type="text" id="city" required placeholder="مثال: بسكرة العالية">
+                <input type="text" name="city" id="city" required placeholder="مثال: بسكرة العالية">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف:</label>
+                <input type="tel" name="phone" id="phone" required placeholder="06XXXXXXXX">
             </div>
             <button type="submit" class="submit-btn" id="submitBtn">إرسال وتسجيل البيانات</button>
         </form>
@@ -84,25 +87,41 @@
 </div>
 
 <script>
-    const SHEETDB_URL = 'https://sheetdb.io/api/v1/345hjtdbetntx';
+    const sheetCSVUrl = 'https://docs.google.com/spreadsheets/d/1-9DHkXXgWj7QxVfI5gi4jdaZkT6FU-IhVpUn2-ih4xc/export?format=csv';
     let allArtisans = [];
 
-    // جلب الحرفيين عند فتح الصفحة
     window.onload = function() {
         fetchArtisans();
     };
 
-    function fetchArtisans() {
-        fetch(SHEETDB_URL)
-            .then(response => response.json())
-            .then(data => {
-                allArtisans = data;
-                displayArtisans(allArtisans);
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-                document.getElementById('artisansList').innerHTML = '<div class="loading" style="color: red;">تعذر تحميل البيانات، تأكد من الاتصال.</div>';
-            });
+    async function fetchArtisans() {
+        try {
+            const response = await fetch(sheetCSVUrl);
+            const data = await response.text();
+            parseCSV(data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('artisansList').innerHTML = '<div class="loading" style="color: red;">تعذر تحميل البيانات، تأكد من الاتصال.</div>';
+        }
+    }
+
+    function parseCSV(text) {
+        const lines = text.split('\n');
+        allArtisans = [];
+        for (let i = 1; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (!line) continue;
+            let row = line.split(',');
+            if (row.length >= 4) {
+                allArtisans.push({
+                    name: row[0]?.replace(/^["']|["']$/g, '').trim() || '',
+                    craft: row[1]?.replace(/^["']|["']$/g, '').trim() || '',
+                    city: row[2]?.replace(/^["']|["']$/g, '').trim() || '',
+                    phone: row[3]?.replace(/^["']|["']$/g, '').trim() || ''
+                });
+            }
+        }
+        displayArtisans(allArtisans);
     }
 
     function displayArtisans(artisans) {
@@ -115,26 +134,21 @@
         }
 
         artisans.forEach(artisan => {
-            // تجاهل الحفارين غير النشطين إذا وجدوا
-            if (artisan.status && artisan.status.toLowerCase() === 'inactive') return;
-
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
             card.innerHTML = `
-                <span class="badge-city">${artisan.city || 'غيرحدد'}</span>
-                <h3 class="artisan-name">${artisan.name || 'بدون اسم'}</h3>
-                <div class="artisan-craft">التخصص: ${artisan.craft || 'غير محدد'}</div>
+                <span class="badge-city">${artisan.city}</span>
+                <h3 class="artisan-name">${artisan.name}</h3>
+                <div class="artisan-craft">التخصص: ${artisan.craft}</div>
                 <div class="card-actions">
-                    <a href="https://wa.me/213${artisan.phone ? artisan.phone.toString().replace(/^0/, '') : ''}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
-                    <a href="tel:${artisan.phone || '#'}" class="action-btn call-btn">اتصال مباشر</a>
+                    <a href="tel:${artisan.phone}" class="action-btn call-btn">اتصال مباشر (${artisan.phone})</a>
                 </div>
             `;
             container.appendChild(card);
         });
     }
 
-    // التبديل بين الواجهات
     function showRegisterForm() {
         document.getElementById('registerSection').style.display = 'block';
         document.getElementById('directorySection').style.display = 'none';
@@ -145,56 +159,47 @@
         document.getElementById('directorySection').style.display = 'block';
     }
 
-    // إرسال البيانات مباشرة لجدول جوجل
+    // إرسال البيانات بدون واتساب
     document.getElementById('registrationForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'جاري الإرسال...';
 
-        const formData = {
-            data: {
-                name: document.getElementById('name').value,
-                craft: document.getElementById('craft').value,
-                phone: "'" + document.getElementById('phone').value,
-                city: document.getElementById('city').value,
-                status: "active"
-            }
-        };
+        const formData = new FormData(this);
 
-        fetch(SHEETDB_URL, {
+        fetch(this.action, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
+            body: formData,
+            headers: { 'Accept': 'application/json' }
         })
-        .then(response => response.json())
-        .then(data => {
-            alert('تم تسجيلك بنجاح! أضيفت بياناتك إلى المنصة والجدول مباشرة.');
-            document.getElementById('registrationForm').reset();
+        .then(response => {
+            if (response.ok) {
+                alert('تم تسجيل البيانات بنجاح!');
+                this.reset();
+                showDirectory();
+            } else {
+                alert('حدث خطأ، يرجى المحاولة مرة أخرى.');
+            }
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتسجيل البيانات';
-            showDirectory();
-            fetchArtisans(); // تحديث القائمة فوراً لتظهر الحرفي الجديد
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى.');
+            alert('حدث خطأ في الاتصال.');
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتسجيل البيانات';
         });
     });
 
-    // وظيفة البحث الفوري
     function filterArtisans() {
         let input = document.getElementById('searchInput').value.toLowerCase();
         let filtered = allArtisans.filter(artisan => {
-            let name = (artisan.name || '').toLowerCase();
-            let craft = (artisan.craft || '').toLowerCase();
-            let city = (artisan.city || '').toLowerCase();
-            return name.includes(input) || craft.includes(input) || city.includes(input);
+            let text = (artisan.name + " " + artisan.craft + " " + artisan.city + " " + artisan.phone).toLowerCase();
+            return text.includes(input);
         });
         displayArtisans(filtered);
     }
+</script>
+
+</body>
+</html>
