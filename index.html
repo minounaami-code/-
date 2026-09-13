@@ -31,7 +31,6 @@
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .submit-btn { background-color: #2e7d32; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .loading { text-align: center; color: #666; padding: 20px; font-weight: bold; }
-        .error-box { background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -73,9 +72,9 @@
 
     <!-- الدليل -->
     <div id="directorySection">
-        <input type="text" id="searchInput" class="search-box" placeholder="ابحث بالحرفة أو البلدية (مثال: بلاكو بلاتر، بسكرة)..." onkeyup="filterArtisans()">
+        <input type="text" id="searchInput" class="search-box" placeholder="ابحث بالحرفة أو البلدية..." onkeyup="filterArtisans()">
         <div id="artisansList">
-            <div class="loading">جاري الاتصال بقاعدة البيانات وتحميل الحرفيين...</div>
+            <div class="loading">جاري جلب الحرفيين...</div>
         </div>
     </div>
 </div>
@@ -89,30 +88,15 @@
     };
 
     function fetchArtisans() {
-        const container = document.getElementById('artisansList');
-        container.innerHTML = '<div class="loading">جاري الاتصال بقاعدة البيانات...</div>';
-
         fetch(SCRIPT_URL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('خطأ في الاتصال بالخادم (HTTP error: ' + response.status + ')');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log("Data received:", data);
                 allArtisans = data;
                 displayArtisans(allArtisans);
             })
             .catch(error => {
-                console.error('Error fetching data:', error);
-                container.innerHTML = `
-                    <div class="error-box">
-                        <strong>تعذر جلب البيانات من جدول البيانات!</strong><br>
-                        السبب المحتمل: ${error.message}<br>
-                        تأكد أن رابط السكريبت صحيح وأن أذونات الجدول العامة مضبوطة على "محرر".
-                    </div>
-                `;
+                console.error('Error:', error);
+                document.getElementById('artisansList').innerHTML = '<div class="loading" style="color: red;">خطأ في تحميل البيانات.</div>';
             });
     }
 
@@ -121,7 +105,7 @@
         container.innerHTML = '';
 
         if (!artisans || artisans.length === 0) {
-            container.innerHTML = '<div class="loading">لا يوجد حرفيون مسجلون حالياً في الجدول.</div>';
+            container.innerHTML = '<div class="loading">لا يوجد حرفيون مسجلون حالياً.</div>';
             return;
         }
 
@@ -129,11 +113,11 @@
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
-            // قراءة الأعمدة بناءً على جدولك الحالي (C للهاتف، D للمدينة)
-            let artisanPhone = artisan.phone || artisan.c || '';
-            let artisanCity = artisan.city || artisan.d || 'غير محدد';
-            let artisanName = artisan.name || artisan.A || 'بدون اسم';
-            let artisanCraft = artisan.craft || artisan.B || 'غير محدد';
+            // قراءة مرنة جداً لجميع الاحتمالات (حسب أسماء الأعمدة في الجدول أو ترتيبها)
+            let artisanName = artisan.name || artisan.A || Object.values(artisan)[0] || 'بدون اسم';
+            let artisanCraft = artisan.craft || artisan.B || Object.values(artisan)[1] || 'غير محدد';
+            let artisanCity = artisan.city || artisan.d || artisan.C || Object.values(artisan)[3] || 'غير محدد';
+            let artisanPhone = artisan.phone || artisan.c || artisan.D || Object.values(artisan)[2] || '';
 
             card.innerHTML = `
                 <span class="badge-city">${artisanCity}</span>
@@ -167,19 +151,20 @@
 
         const formData = {
             name: document.getElementById('name').value,
-            craft: document.getElementById('craft').value,
+            craft: document.getElementById('craft'].value,
             city: document.getElementById('city').value,
             phone: "'" + document.getElementById('phone').value
         };
 
         fetch(SCRIPT_URL, {
+            method: 'Mode-NoCors', // للتأكد من التوافق
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
         .then(() => {
-            alert('تم تسجيلك بنجاح! أضيفت بياناتك إلى المنصة والجدول مباشرة.');
+            alert('تم تسجيلك بنجاح!');
             document.getElementById('registrationForm').reset();
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتضمين مباشر في الدليل';
@@ -188,7 +173,7 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى.');
+            alert('حدث خطأ أثناء التسجيل.');
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتضمين مباشر في الدليل';
         });
@@ -197,10 +182,8 @@
     function filterArtisans() {
         let input = document.getElementById('searchInput').value.toLowerCase();
         let filtered = allArtisans.filter(artisan => {
-            let name = (artisan.name || artisan.A || '').toLowerCase();
-            let craft = (artisan.craft || artisan.B || '').toLowerCase();
-            let city = (artisan.city || artisan.d || '').toLowerCase();
-            return name.includes(input) || craft.includes(input) || city.includes(input);
+            let text = Object.values(artisan).join(' ').toLowerCase();
+            return text.includes(input);
         });
         displayArtisans(filtered);
     }
