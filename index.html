@@ -18,7 +18,6 @@
         .action-btn { flex: 1; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; }
         .whatsapp-btn { background-color: #e8f5e9; color: #2e7d32; }
         .call-btn { background-color: #e3f2fd; color: #1565c0; }
-        .loading { text-align: center; color: #666; padding: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -30,52 +29,44 @@
 
 <div class="container">
     <input type="text" id="searchInput" class="search-box" placeholder="ابحث باسم الحرفي أو التخصص أو المدينة..." onkeyup="filterArtisans()">
-    <div id="artisansList">
-        <div class="loading">جاري تحميل الحرفيين...</div>
-    </div>
+    <div id="artisansList"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKkMKS4PH06dhVu_VLQG8IrY73lCs_vw39Jz1ErbKyhVoEf3067xlt2sy2PZqgG0qB/exec';
-    let allArtisans = [];
+    // قائمة الحرفيين الخاصة بك مسجلة هنا مباشرة وبدون أخطاء
+    const artisans = [
+        { name: "Minou naami", craft: "بلاكو بلاتر + صباغة", city: "بسكرة العالية", phone: "0662050863" },
+        { name: "Abde Lmoume", craft: "بلاكو بلاتر", city: "بسكرة", phone: "0559807253" },
+        { name: "Houssamdz", craft: "بلاكو بلاتر", city: "شلف", phone: "0782342623" },
+        { name: "Amara abderr", craft: "تجارت الالمنيوم والبا", city: "الجزائر", phone: "21379973041" },
+        { name: "Mohamed Saik", craft: "باكو بلاتر دهان", city: "الرغاية", phone: "0540049949" },
+        { name: "hicham", craft: "ترصيص صحي ماء ا", city: "بسكرة", phone: "0675975817" },
+        { name: "Norddine Mba", craft: "بناء وتبليص", city: "Sidi Khaled", phone: "0675434381" },
+        { name: "Riad Binwa", craft: "دهان منازل", city: "الجزائر، سيدي محمد", phone: "0781211656" },
+        { name: "Salah constan", craft: "دهان", city: "قسنطينة الخروب علي", phone: "0791647202" },
+        { name: "أمين", craft: "الصباغة الاحترافية ب", city: "الجلفة", phone: "0661418747" },
+        { name: "Minou Naami", craft: "تركيب بلاكو بلاتر وا", city: "أولاد جلال", phone: "0662050863" }
+    ];
 
-    window.onload = function() {
-        fetch(SCRIPT_URL)
-            .then(res => res.json())
-            .then(data => {
-                allArtisans = data;
-                displayArtisans(allArtisans);
-            })
-            .catch(err => {
-                document.getElementById('artisansList').innerHTML = '<div class="loading" style="color:red;">عذراً، حدث خطأ في تحميل البيانات.</div>';
-            });
-    };
-
-    function displayArtisans(artisans) {
+    function displayArtisans(data) {
         const container = document.getElementById('artisansList');
         container.innerHTML = '';
 
-        if (!artisans || artisans.length === 0) {
-            container.innerHTML = '<div class="loading">لا توجد نتائج مطابقة حالياً.</div>';
+        if (data.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">لا توجد نتائج مطابقة.</div>';
             return;
         }
 
-        artisans.slice().reverse().forEach(item => {
-            // سحب البيانات بمرونة تامة بغض النظر عن أسماء الأعمدة
-            let name = item.name || item.A || Object.values(item)[0] || 'حرفي معتمد';
-            let craft = item.craft || item.B || Object.values(item)[1] || 'خدمات عامة';
-            let city = item.city || item.C || Object.values(item)[2] || 'بسكرة';
-            let phone = item.phone || item.D || Object.values(item)[3] || '';
-
+        data.forEach(item => {
             let card = document.createElement('div');
             card.className = 'artisan-card';
             card.innerHTML = `
-                <span class="badge-city">${city}</span>
-                <h3 class="artisan-name">${name}</h3>
-                <div class="artisan-craft">التخصص: ${craft}</div>
+                <span class="badge-city">${item.city}</span>
+                <h3 class="artisan-name">${item.name}</h3>
+                <div class="artisan-craft">التخصص: ${item.craft}</div>
                 <div class="card-actions">
-                    <a href="https://wa.me/213${phone.toString().replace(/^['=]/, '').replace(/^0/, '')}" class="action-btn whatsapp-btn" target="_blank">واتساب</a>
-                    <a href="tel:${phone}" class="action-btn call-btn">اتصال</a>
+                    <a href="https://wa.me/213${item.phone.replace(/^0/, '')}" class="action-btn whatsapp-btn" target="_blank">واتساب</a>
+                    <a href="tel:${item.phone}" class="action-btn call-btn">اتصال</a>
                 </div>
             `;
             container.appendChild(card);
@@ -84,12 +75,15 @@
 
     function filterArtisans() {
         let val = document.getElementById('searchInput').value.toLowerCase();
-        let filtered = allArtisans.filter(item => {
-            let rowText = Object.values(item).join(' ').toLowerCase();
-            return rowText.includes(val);
+        let filtered = artisans.filter(item => {
+            let text = (item.name + " " + item.craft + " " + item.city + " " + item.phone).toLowerCase();
+            return text.includes(val);
         });
         displayArtisans(filtered);
     }
+
+    // عرض القائمة أول ما يفتح الموقع
+    displayArtisans(artisans);
 </script>
 
 </body>
