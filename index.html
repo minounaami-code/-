@@ -8,7 +8,12 @@
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; direction: rtl; text-align: right; }
         .header { background: #3700b3; color: white; padding: 20px; text-align: center; }
         .header h1 { margin: 0; font-size: 22px; }
-        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        .nav-tabs { display: flex; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 15px; text-align: center; background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; color: #666; }
+        .tab-btn.active { color: #3700b3; border-bottom: 3px solid #3700b3; }
+        .container { max-width: 600px; margin: 0 auto; padding: 0 15px 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .search-box { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 20px; }
         .artisan-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .badge-city { background: #ede7f6; color: #5e35b1; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; margin-bottom: 8px; }
@@ -18,6 +23,13 @@
         .action-btn { flex: 1; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; }
         .whatsapp-btn { background-color: #e8f5e9; color: #2e7d32; }
         .call-btn { background-color: #e3f2fd; color: #1565c0; }
+        
+        /* نموذج التسجيل */
+        .form-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .submit-btn { width: 100%; background: #3700b3; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .loading { text-align: center; color: #666; padding: 20px; font-size: 16px; }
     </style>
 </head>
@@ -25,21 +37,77 @@
 
 <div class="header">
     <h1>منصة خدماتك</h1>
-    <p style="margin: 5px 0 0; font-size: 13px;">دليل الحرفيين والورشات</p>
+    <p style="margin: 5px 0 0; font-size: 13px;">البوابة الاحترافية لاكتشاف وطلب أفضل الحرفيين</p>
+</div>
+
+<div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('directory', this)">دليل الحرفيين</button>
+    <button class="tab-btn" onclick="switchTab('register', this)">سجل حرفياً جديداً</button>
 </div>
 
 <div class="container">
-    <input type="text" id="searchInput" class="search-box" placeholder="ابحث باسم الحرفي أو التخصص أو المدينة..." onkeyup="filterArtisans()">
-    <div id="artisansList">
-        <div class="loading">جاري تحميل البيانات من الجدول...</div>
+    <!-- قسم دليل الحرفيين -->
+    <div id="directory" class="tab-content active">
+        <input type="text" id="searchInput" class="search-box" placeholder="ابحث بالحرفة أو البلدية (مثال: بلاكو بلاتر، بسكرة)..." onkeyup="filterArtisans()">
+        <div id="artisansList">
+            <div class="loading">جاري تحميل البيانات...</div>
+        </div>
+    </div>
+
+    <!-- قسم تسجيل حرفي جديد -->
+    <div id="register" class="tab-content">
+        <div class="form-card">
+            <h3 style="margin-top: 0; color: #3700b3;">📝 انضم إلينا كحرفي معتمد</h3>
+            <div class="form-group">
+                <label>الاسم الكامل أو اللقب التجاري:</label>
+                <input type="text" id="regName" class="form-control" placeholder="مثال: ورشة ديكورات البلاكو">
+            </div>
+            <div class="form-group">
+                <label>الحرفة / التخصص الرئيسي:</label>
+                <select id="regCraft" class="form-control">
+                    <option value="">اختر الحرفة من القائمة...</option>
+                    <option value="تركيب بلاكو بلاتر وصباغة عصري">تركيب بلاكو بلاتر وصباغة عصرية</option>
+                    <option value="ترصيص صحي ماء وغاز">ترصيص صحي ماء وغاز</option>
+                    <option value="كهرباء معمارية وإضاءة">كهرباء معمارية وإضاءة</option>
+                    <option value="تركيب سيراميك ورخام">تركيب سيراميك ورخام</option>
+                    <option value="تجارة ألومنيوم و PVC">تجارة ألومنيوم و PVC</option>
+                    <option value="دهان منازل">دهان منازل</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>الولاية / المنطقة:</label>
+                <select id="regCity" class="form-control">
+                    <option value="">اختر الولاية...</option>
+                    <option value="بسكرة العالية">بسكرة العالية</option>
+                    <option value="الجزائر العاصمة">الجزائر العاصمة</option>
+                    <option value="قسنطينة">قسنطينة</option>
+                    <option value="وهران">وهران</option>
+                    <option value="باتنة">باتنة</option>
+                    <option value="سطيف">سطيف</option>
+                    <option value="عنابة">عنابة</option>
+                    <option value="المسيلة">المسيلة</option>
+                    <option value="الشلف">الشلف</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف النقال:</label>
+                <input type="tel" id="regPhone" class="form-control" placeholder="مثال: 0662050863">
+            </div>
+            <button class="submit-btn" onclick="submitArtisan()">إرسال وتضمين مباشر في الدليل</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // رابط جدول البيانات الخاص بك
     const sheetCSVUrl = 'https://docs.google.com/spreadsheets/d/1-9DHkXXgWj7QxVfI5gi4jdaZkT6FU-IhVpUn2-ih4xc/export?format=csv';
-    
     let allArtisans = [];
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
 
     async function fetchSheetData() {
         try {
@@ -54,13 +122,9 @@
     function parseCSV(text) {
         const lines = text.split('\n');
         allArtisans = [];
-        
-        // نبدأ من الخط الثاني لتجاوز أسماء الأعمدة (Header)
         for (let i = 1; i < lines.length; i++) {
             let line = lines[i].trim();
             if (!line) continue;
-            
-            // تقسيم السطر حسب الفواصل (مع مراعاة العلامات التنصيصية البسيطة)
             let row = line.split(',');
             if (row.length >= 4) {
                 allArtisans.push({
@@ -92,8 +156,8 @@
                 <h3 class="artisan-name">${item.name}</h3>
                 <div class="artisan-craft">التخصص: ${item.craft}</div>
                 <div class="card-actions">
-                    <a href="https://wa.me/213${cleanPhone}" class="action-btn whatsapp-btn" target="_blank">واتساب</a>
-                    <a href="tel:${item.phone}" class="action-btn call-btn">اتصال</a>
+                    <a href="https://wa.me/213${cleanPhone}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
+                    <a href="tel:${item.phone}" class="action-btn call-btn">اتصال مباشر</a>
                 </div>
             `;
             container.appendChild(card);
@@ -109,7 +173,23 @@
         displayArtisans(filtered);
     }
 
-    // جلب البيانات أول ما يفتح الموقع
+    function submitArtisan() {
+        let name = document.getElementById('regName').value;
+        let craft = document.getElementById('regCraft').value;
+        let city = document.getElementById('regCity').value;
+        let phone = document.getElementById('regPhone').value;
+
+        if(!name || !craft || !city || !phone) {
+            alert('الرجاء ملء جميع الحقول المطلوبة!');
+            return;
+        }
+
+        // توجيه الحرفي عبر الواتساب مباشرة برقمك لتسجيله بكل سهولة وأمان
+        let msg = `السلام عليكم، أريد التسجيل في منصة خدماتك:\nالاسم: ${name}\nالحرفة: ${craft}\nالولاية: ${city}\nالهاتف: ${phone}`;
+        let url = `https://wa.me/213662050863?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    }
+
     fetchSheetData();
 </script>
 
