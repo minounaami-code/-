@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة خدماتك - دليل الحرفيين</title>
+    <title>منصة خدماتك - دليل الحرفيين والورشات</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; direction: rtl; text-align: right; }
         .header { background: #3700b3; color: white; padding: 20px; text-align: center; }
@@ -18,6 +18,7 @@
         .action-btn { flex: 1; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; }
         .whatsapp-btn { background-color: #e8f5e9; color: #2e7d32; }
         .call-btn { background-color: #e3f2fd; color: #1565c0; }
+        .loading { text-align: center; color: #666; padding: 20px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -29,24 +30,49 @@
 
 <div class="container">
     <input type="text" id="searchInput" class="search-box" placeholder="ابحث باسم الحرفي أو التخصص أو المدينة..." onkeyup="filterArtisans()">
-    <div id="artisansList"></div>
+    <div id="artisansList">
+        <div class="loading">جاري تحميل البيانات من الجدول...</div>
+    </div>
 </div>
 
 <script>
-    // قائمة الحرفيين الخاصة بك مسجلة هنا مباشرة وبدون أخطاء
-    const artisans = [
-        { name: "Minou naami", craft: "بلاكو بلاتر + صباغة", city: "بسكرة العالية", phone: "0662050863" },
-        { name: "Abde Lmoume", craft: "بلاكو بلاتر", city: "بسكرة", phone: "0559807253" },
-        { name: "Houssamdz", craft: "بلاكو بلاتر", city: "شلف", phone: "0782342623" },
-        { name: "Amara abderr", craft: "تجارت الالمنيوم والبا", city: "الجزائر", phone: "21379973041" },
-        { name: "Mohamed Saik", craft: "باكو بلاتر دهان", city: "الرغاية", phone: "0540049949" },
-        { name: "hicham", craft: "ترصيص صحي ماء ا", city: "بسكرة", phone: "0675975817" },
-        { name: "Norddine Mba", craft: "بناء وتبليص", city: "Sidi Khaled", phone: "0675434381" },
-        { name: "Riad Binwa", craft: "دهان منازل", city: "الجزائر، سيدي محمد", phone: "0781211656" },
-        { name: "Salah constan", craft: "دهان", city: "قسنطينة الخروب علي", phone: "0791647202" },
-        { name: "أمين", craft: "الصباغة الاحترافية ب", city: "الجلفة", phone: "0661418747" },
-        { name: "Minou Naami", craft: "تركيب بلاكو بلاتر وا", city: "أولاد جلال", phone: "0662050863" }
-    ];
+    // رابط جدول البيانات الخاص بك
+    const sheetCSVUrl = 'https://docs.google.com/spreadsheets/d/1-9DHkXXgWj7QxVfI5gi4jdaZkT6FU-IhVpUn2-ih4xc/export?format=csv';
+    
+    let allArtisans = [];
+
+    async function fetchSheetData() {
+        try {
+            const response = await fetch(sheetCSVUrl);
+            const data = await response.text();
+            parseCSV(data);
+        } catch (error) {
+            document.getElementById('artisansList').innerHTML = '<div style="text-align:center; color:red; padding:20px;">عذراً، حدث خطأ في تحميل البيانات.</div>';
+        }
+    }
+
+    function parseCSV(text) {
+        const lines = text.split('\n');
+        allArtisans = [];
+        
+        // نبدأ من الخط الثاني لتجاوز أسماء الأعمدة (Header)
+        for (let i = 1; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (!line) continue;
+            
+            // تقسيم السطر حسب الفواصل (مع مراعاة العلامات التنصيصية البسيطة)
+            let row = line.split(',');
+            if (row.length >= 4) {
+                allArtisans.push({
+                    name: row[0]?.replace(/^["']|["']$/g, '').trim() || '',
+                    craft: row[1]?.replace(/^["']|["']$/g, '').trim() || '',
+                    city: row[2]?.replace(/^["']|["']$/g, '').trim() || '',
+                    phone: row[3]?.replace(/^["']|["']$/g, '').trim() || ''
+                });
+            }
+        }
+        displayArtisans(allArtisans);
+    }
 
     function displayArtisans(data) {
         const container = document.getElementById('artisansList');
@@ -60,12 +86,13 @@
         data.forEach(item => {
             let card = document.createElement('div');
             card.className = 'artisan-card';
+            let cleanPhone = item.phone.replace(/^0/, '');
             card.innerHTML = `
                 <span class="badge-city">${item.city}</span>
                 <h3 class="artisan-name">${item.name}</h3>
                 <div class="artisan-craft">التخصص: ${item.craft}</div>
                 <div class="card-actions">
-                    <a href="https://wa.me/213${item.phone.replace(/^0/, '')}" class="action-btn whatsapp-btn" target="_blank">واتساب</a>
+                    <a href="https://wa.me/213${cleanPhone}" class="action-btn whatsapp-btn" target="_blank">واتساب</a>
                     <a href="tel:${item.phone}" class="action-btn call-btn">اتصال</a>
                 </div>
             `;
@@ -75,15 +102,15 @@
 
     function filterArtisans() {
         let val = document.getElementById('searchInput').value.toLowerCase();
-        let filtered = artisans.filter(item => {
+        let filtered = allArtisans.filter(item => {
             let text = (item.name + " " + item.craft + " " + item.city + " " + item.phone).toLowerCase();
             return text.includes(val);
         });
         displayArtisans(filtered);
     }
 
-    // عرض القائمة أول ما يفتح الموقع
-    displayArtisans(artisans);
+    // جلب البيانات أول ما يفتح الموقع
+    fetchSheetData();
 </script>
 
 </body>
