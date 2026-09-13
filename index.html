@@ -16,7 +16,6 @@
         .btn-register { background-color: #3700b3; color: white; }
         .search-box { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 20px; }
         
-        /* بطاقات الحرفيين */
         .artisan-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .badge-city { background: #ede7f6; color: #5e35b1; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; margin-bottom: 8px; }
         .artisan-name { font-size: 18px; font-weight: bold; color: #333; margin: 0 0 5px 0; }
@@ -26,7 +25,6 @@
         .whatsapp-btn { background-color: #e8f5e9; color: #2e7d32; }
         .call-btn { background-color: #e3f2fd; color: #1565c0; }
 
-        /* نموذج التسجيل */
         .form-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: none; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
@@ -82,7 +80,7 @@
 </div>
 
 <script>
-    const SHEETDB_URL = 'https://sheetdb.io/api/v1/345hjtdbetntx';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKkMKS4PH06dhVu_VLQG8IrY73lCs_vw39Jz1ErbKyhVoEf3067xlt2sy2PZqgG0qB/exec';
     let allArtisans = [];
 
     window.onload = function() {
@@ -90,7 +88,7 @@
     };
 
     function fetchArtisans() {
-        fetch(SHEETDB_URL)
+        fetch(SCRIPT_URL)
             .then(response => response.json())
             .then(data => {
                 allArtisans = data;
@@ -111,7 +109,7 @@
             return;
         }
 
-        artisans.forEach(artisan => {
+        artisans.slice().reverse().forEach(artisan => {
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
@@ -146,27 +144,25 @@
         submitBtn.textContent = 'جاري الإرسال...';
 
         const formData = {
-            data: {
-                name: document.getElementById('name').value,
-                craft: document.getElementById('craft').value,
-                phone: "='" + document.getElementById('phone').value + "'",
-                city: document.getElementById('city').value
-            }
+            name: document.getElementById('name').value,
+            craft: document.getElementById('craft').value,
+            city: document.getElementById('city').value,
+            phone: "'" + document.getElementById('phone').value
         };
 
-        fetch(SHEETDB_URL, {
+        fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(() => {
             alert('تم تسجيلك بنجاح! أضيفت بياناتك إلى المنصة والجدول مباشرة.');
             document.getElementById('registrationForm').reset();
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتضمين مباشر في الدليل';
             showDirectory();
-            fetchArtisans();
+            setTimeout(fetchArtisans, 1500);
         })
         .catch(error => {
             console.error('Error:', error);
