@@ -87,7 +87,6 @@
     const SHEETDB_URL = 'https://sheetdb.io/api/v1/345hjtdbetntx';
     let allArtisans = [];
 
-    // جلب الحرفيين عند فتح الصفحة
     window.onload = function() {
         fetchArtisans();
     };
@@ -109,14 +108,12 @@
         const container = document.getElementById('artisansList');
         container.innerHTML = '';
 
-        if (artisans.length === 0) {
+        if (!artisans || artisans.length === 0) {
             container.innerHTML = '<div class="loading">لا يوجد حرفيون مسجلون حالياً.</div>';
             return;
         }
 
         artisans.forEach(artisan => {
-            if (artisan.status && artisan.status.toLowerCase() === 'inactive') return;
-
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
@@ -125,7 +122,7 @@
                 <h3 class="artisan-name">${artisan.name || 'بدون اسم'}</h3>
                 <div class="artisan-craft">التخصص: ${artisan.craft || 'غير محدد'}</div>
                 <div class="card-actions">
-                    <a href="https://wa.me/213${artisan.phone ? artisan.phone.toString().replace(/^0/, '') : ''}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
+                    <a href="https://wa.me/213${artisan.phone ? artisan.phone.toString().replace(/^['=]/, '').replace(/^0/, '') : ''}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
                     <a href="tel:${artisan.phone || '#'}" class="action-btn call-btn">اتصال مباشر</a>
                 </div>
             `;
@@ -133,7 +130,6 @@
         });
     }
 
-    // التبديل بين الواجهات
     function showRegisterForm() {
         document.getElementById('registerSection').style.display = 'block';
         document.getElementById('directorySection').style.display = 'none';
@@ -144,7 +140,6 @@
         document.getElementById('directorySection').style.display = 'block';
     }
 
-    // إرسال البيانات مباشرة لجدول جوجل عبر SheetDB بدقة
     document.getElementById('registrationForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -157,8 +152,7 @@
                 name: document.getElementById('name').value,
                 craft: document.getElementById('craft').value,
                 phone: "='" + document.getElementById('phone').value + "'",
-                city: document.getElementById('city').value,
-                status: "active"
+                city: document.getElementById('city').value
             }
         };
 
@@ -176,7 +170,7 @@
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتسجيل البيانات';
             showDirectory();
-            fetchArtisans(); // تحديث القائمة فوراً
+            fetchArtisans();
         })
         .catch(error => {
             console.error('Error:', error);
@@ -186,7 +180,6 @@
         });
     });
 
-    // وظيفة البحث الفوري
     function filterArtisans() {
         let input = document.getElementById('searchInput').value.toLowerCase();
         let filtered = allArtisans.filter(artisan => {
