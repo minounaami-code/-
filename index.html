@@ -113,11 +113,11 @@
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
-            // قراءة مرنة جداً لجميع الاحتمالات (حسب أسماء الأعمدة في الجدول أو ترتيبها)
+            // قراءة الخانات بناءً على شكل الجدول لديك (name, craft, city, phone)
             let artisanName = artisan.name || artisan.A || Object.values(artisan)[0] || 'بدون اسم';
             let artisanCraft = artisan.craft || artisan.B || Object.values(artisan)[1] || 'غير محدد';
-            let artisanCity = artisan.city || artisan.d || artisan.C || Object.values(artisan)[3] || 'غير محدد';
-            let artisanPhone = artisan.phone || artisan.c || artisan.D || Object.values(artisan)[2] || '';
+            let artisanCity = artisan.city || artisan.C || Object.values(artisan)[2] || 'غير محدد';
+            let artisanPhone = artisan.phone || artisan.D || Object.values(artisan)[3] || '';
 
             card.innerHTML = `
                 <span class="badge-city">${artisanCity}</span>
@@ -151,13 +151,12 @@
 
         const formData = {
             name: document.getElementById('name').value,
-            craft: document.getElementById('craft'].value,
+            craft: document.getElementById('craft').value,
             city: document.getElementById('city').value,
             phone: "'" + document.getElementById('phone').value
         };
 
         fetch(SCRIPT_URL, {
-            method: 'Mode-NoCors', // للتأكد من التوافق
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
