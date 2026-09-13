@@ -113,13 +113,17 @@
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
+            // مطابقة الأعمدة بدقة: العمود C للهاتف و العمود D للمدينة
+            let artisanPhone = artisan.phone || artisan.c || '';
+            let artisanCity = artisan.city || artisan.d || 'غير محدد';
+
             card.innerHTML = `
-                <span class="badge-city">${artisan.city || 'غير محدد'}</span>
+                <span class="badge-city">${artisanCity}</span>
                 <h3 class="artisan-name">${artisan.name || 'بدون اسم'}</h3>
                 <div class="artisan-craft">التخصص: ${artisan.craft || 'غير محدد'}</div>
                 <div class="card-actions">
-                    <a href="https://wa.me/213${artisan.phone ? artisan.phone.toString().replace(/^['=]/, '').replace(/^0/, '') : ''}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
-                    <a href="tel:${artisan.phone || '#'}" class="action-btn call-btn">اتصال مباشر</a>
+                    <a href="https://wa.me/213${artisanPhone.toString().replace(/^['=]/, '').replace(/^0/, '')}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
+                    <a href="tel:${artisanPhone}" class="action-btn call-btn">اتصال مباشر</a>
                 </div>
             `;
             container.appendChild(card);
@@ -177,7 +181,7 @@
         let filtered = allArtisans.filter(artisan => {
             let name = (artisan.name || '').toLowerCase();
             let craft = (artisan.craft || '').toLowerCase();
-            let city = (artisan.city || '').toLowerCase();
+            let city = (artisan.city || artisan.d || '').toLowerCase();
             return name.includes(input) || craft.includes(input) || city.includes(input);
         });
         displayArtisans(filtered);
