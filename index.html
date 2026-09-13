@@ -30,7 +30,8 @@
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .submit-btn { background-color: #2e7d32; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .loading { text-align: center; color: #666; padding: 20px; }
+        .loading { text-align: center; color: #666; padding: 20px; font-weight: bold; }
+        .error-box { background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -74,7 +75,7 @@
     <div id="directorySection">
         <input type="text" id="searchInput" class="search-box" placeholder="ابحث بالحرفة أو البلدية (مثال: بلاكو بلاتر، بسكرة)..." onkeyup="filterArtisans()">
         <div id="artisansList">
-            <div class="loading">جاري تحميل الحرفيين...</div>
+            <div class="loading">جاري الاتصال بقاعدة البيانات وتحميل الحرفيين...</div>
         </div>
     </div>
 </div>
@@ -88,15 +89,30 @@
     };
 
     function fetchArtisans() {
+        const container = document.getElementById('artisansList');
+        container.innerHTML = '<div class="loading">جاري الاتصال بقاعدة البيانات...</div>';
+
         fetch(SCRIPT_URL)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('خطأ في الاتصال بالخادم (HTTP error: ' + response.status + ')');
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log("Data received:", data);
                 allArtisans = data;
                 displayArtisans(allArtisans);
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
-                document.getElementById('artisansList').innerHTML = '<div class="loading" style="color: red;">تعذر تحميل البيانات، تأكد من الاتصال.</div>';
+                container.innerHTML = `
+                    <div class="error-box">
+                        <strong>تعذر جلب البيانات من جدول البيانات!</strong><br>
+                        السبب المحتمل: ${error.message}<br>
+                        تأكد أن رابط السكريبت صحيح وأن أذونات الجدول العامة مضبوطة على "محرر".
+                    </div>
+                `;
             });
     }
 
@@ -105,7 +121,7 @@
         container.innerHTML = '';
 
         if (!artisans || artisans.length === 0) {
-            container.innerHTML = '<div class="loading">لا يوجد حرفيون مسجلون حالياً.</div>';
+            container.innerHTML = '<div class="loading">لا يوجد حرفيون مسجلون حالياً في الجدول.</div>';
             return;
         }
 
@@ -113,14 +129,16 @@
             let card = document.createElement('div');
             card.className = 'artisan-card';
             
-            // مطابقة الأعمدة بدقة: العمود C للهاتف و العمود D للمدينة
+            // قراءة الأعمدة بناءً على جدولك الحالي (C للهاتف، D للمدينة)
             let artisanPhone = artisan.phone || artisan.c || '';
             let artisanCity = artisan.city || artisan.d || 'غير محدد';
+            let artisanName = artisan.name || artisan.A || 'بدون اسم';
+            let artisanCraft = artisan.craft || artisan.B || 'غير محدد';
 
             card.innerHTML = `
                 <span class="badge-city">${artisanCity}</span>
-                <h3 class="artisan-name">${artisan.name || 'بدون اسم'}</h3>
-                <div class="artisan-craft">التخصص: ${artisan.craft || 'غير محدد'}</div>
+                <h3 class="artisan-name">${artisanName}</h3>
+                <div class="artisan-craft">التخصص: ${artisanCraft}</div>
                 <div class="card-actions">
                     <a href="https://wa.me/213${artisanPhone.toString().replace(/^['=]/, '').replace(/^0/, '')}" class="action-btn whatsapp-btn" target="_blank">طلب عبر واتساب</a>
                     <a href="tel:${artisanPhone}" class="action-btn call-btn">اتصال مباشر</a>
@@ -166,7 +184,7 @@
             submitBtn.disabled = false;
             submitBtn.textContent = 'إرسال وتضمين مباشر في الدليل';
             showDirectory();
-            setTimeout(fetchArtisans, 1500);
+            setTimeout(fetchArtisans, 2000);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -179,8 +197,8 @@
     function filterArtisans() {
         let input = document.getElementById('searchInput').value.toLowerCase();
         let filtered = allArtisans.filter(artisan => {
-            let name = (artisan.name || '').toLowerCase();
-            let craft = (artisan.craft || '').toLowerCase();
+            let name = (artisan.name || artisan.A || '').toLowerCase();
+            let craft = (artisan.craft || artisan.B || '').toLowerCase();
             let city = (artisan.city || artisan.d || '').toLowerCase();
             return name.includes(input) || craft.includes(input) || city.includes(input);
         });
