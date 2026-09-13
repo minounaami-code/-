@@ -17,7 +17,7 @@
         .search-box { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 20px; }
         
         /* بطاقات الحرفيين */
-        .artisan-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; }
+        .artisan-card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .badge-city { background: #ede7f6; color: #5e35b1; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; margin-bottom: 8px; }
         .artisan-name { font-size: 18px; font-weight: bold; color: #333; margin: 0 0 5px 0; }
         .artisan-craft { color: #666; font-size: 14px; margin-bottom: 12px; }
@@ -43,42 +43,40 @@
 </div>
 
 <div class="container">
-    <!-- أزرار التبديل -->
     <div class="nav-buttons">
         <button class="btn-directory" onclick="showDirectory()">دليل الحرفيين</button>
         <button class="btn-register" onclick="showRegisterForm()">سجل حرفياً جديداً</button>
     </div>
 
-    <!-- قسم نموذج التسجيل -->
+    <!-- نموذج التسجيل -->
     <div id="registerSection" class="form-section">
-        <h3 style="margin-top: 0; color: #333; text-align: center;">تسجيل حرفي جديد</h3>
+        <h3 style="margin-top: 0; color: #333; text-align: center;">✍️ انضم إلينا كحرفي معتمد</h3>
         <form id="registrationForm">
             <div class="form-group">
-                <label>الاسم الكامل:</label>
-                <input type="text" id="name" required placeholder="مثال: أيمن نعمي">
+                <label>الاسم الكامل أو اللقب التجاري:</label>
+                <input type="text" id="name" required placeholder="مثال: ورشة ديكورات البلاكو">
             </div>
             <div class="form-group">
-                <label>التخصص:</label>
+                <label>الحرفة / التخصص الرئيسي:</label>
                 <input type="text" id="craft" required placeholder="مثال: بلاكو بلاتر + صباغة">
             </div>
             <div class="form-group">
-                <label>رقم الهاتف:</label>
-                <input type="tel" id="phone" required placeholder="06XXXXXXXX">
-            </div>
-            <div class="form-group">
-                <label>المدينة / الولاية:</label>
+                <label>الولاية / المنطقة:</label>
                 <input type="text" id="city" required placeholder="مثال: بسكرة العالية">
             </div>
-            <button type="submit" class="submit-btn" id="submitBtn">إرسال وتسجيل البيانات</button>
+            <div class="form-group">
+                <label>رقم الهاتف النقال:</label>
+                <input type="tel" id="phone" required placeholder="0662050863">
+            </div>
+            <button type="submit" class="submit-btn" id="submitBtn">إرسال وتضمين مباشر في الدليل</button>
         </form>
     </div>
 
-    <!-- قسم الدليل وعرض الحرفيين -->
+    <!-- الدليل -->
     <div id="directorySection">
         <input type="text" id="searchInput" class="search-box" placeholder="ابحث بالحرفة أو البلدية (مثال: بلاكو بلاتر، بسكرة)..." onkeyup="filterArtisans()">
-        
         <div id="artisansList">
-            <div class="loading">جاري تحميل الحرفيين من الجدول...</div>
+            <div class="loading">جاري تحميل الحرفيين...</div>
         </div>
     </div>
 </div>
@@ -158,9 +156,7 @@
 
         fetch(SHEETDB_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
         .then(response => response.json())
@@ -168,7 +164,7 @@
             alert('تم تسجيلك بنجاح! أضيفت بياناتك إلى المنصة والجدول مباشرة.');
             document.getElementById('registrationForm').reset();
             submitBtn.disabled = false;
-            submitBtn.textContent = 'إرسال وتسجيل البيانات';
+            submitBtn.textContent = 'إرسال وتضمين مباشر في الدليل';
             showDirectory();
             fetchArtisans();
         })
@@ -176,7 +172,7 @@
             console.error('Error:', error);
             alert('حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى.');
             submitBtn.disabled = false;
-            submitBtn.textContent = 'إرسال وتسجيل البيانات';
+            submitBtn.textContent = 'إرسال وتضمين مباشر في الدليل';
         });
     });
 
